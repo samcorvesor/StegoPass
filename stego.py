@@ -20,13 +20,14 @@ class Stego:
 
         while inp != 9:
             #Clear the terminal for better readability
-            #if os.name == 'nt':
-            #    os.system('cls')
+            if os.name == 'nt':
+                os.system('cls')
 
             print("(1) Retrieve a Password")
             print("(2) Embed a Password")
             print("(9) Exit")
             inp = input()
+            print()
             
             #Prevent typecasting errors
             try:
@@ -59,6 +60,7 @@ class Stego:
                 print("("+str(i+1)+") "+images[i])
             print("(x) Cancel")
             ans = input()
+            print()
 
             if ans == "x":
                 return
@@ -74,7 +76,25 @@ class Stego:
         for i in range(32):#Again, can replace this with a vector calculation
             pLen += str(flatIm[i] & 1)
         
-        #HERE
+        #print(pLen)
+        #print(int(pLen, 2))
+
+        binPass = [int(x) for x in flatIm[32:32+int(pLen, 2)]]
+        plainPass = ""
+        for val in binPass:
+            plainPass += str(val & 1)
+
+        #Convert String into bytes, then ints
+        passBytes = [plainPass[i:i+8] for i in range(0, len(plainPass), 8)]
+        passInts = [int(b, 2) for b in passBytes]
+
+        #Decode back into ascii
+        recovered = bytes(passInts).decode('utf-8')
+        #print(recovered)
+
+        pyperclip.copy(recovered)
+
+        print("Password is now on clipboard! Press Enter to Return to Menu.")
 
         a = input()
 
