@@ -5,10 +5,12 @@ import numpy as np
 import cv2
 
 import getpass
+import pyperclip
 
 class Stego:
     def __init__(self):
         self.directory = os.path.dirname(os.path.abspath(__file__))
+        self.fileTypes = ('.jpg', '.jpeg', '.png') #Maybe add more later - needs error checking
 
     #==================================================================
 
@@ -18,8 +20,8 @@ class Stego:
 
         while inp != 9:
             #Clear the terminal for better readability
-            if os.name == 'nt':
-                os.system('cls')
+            #if os.name == 'nt':
+            #    os.system('cls')
 
             print("(1) Retrieve a Password")
             print("(2) Embed a Password")
@@ -34,16 +36,47 @@ class Stego:
 
             #Redirect the user to different modules
             if inp == 1:
-                print("Recall password")
+                self.retrievePass()
             elif inp == 2:
                 self.getFileAndPass()
+
+            #Can add option to update or delete passwords
+
             elif inp == 9:
                 exit()
 
     #==================================================================
 
     def retrievePass(self):
-        print()
+        d = self.directory+"\\Images\\"
+        images = [f for f in os.listdir(d) if f.lower().endswith(self.fileTypes)]
+        
+        #Print file options
+        ans = -1
+        f = None
+        while not f:
+            for i in range(len(images)):
+                print("("+str(i+1)+") "+images[i])
+            print("(x) Cancel")
+            ans = input()
+
+            if ans == "x":
+                return
+            elif int(ans) in range(1, len(images)+1):#Needs error checking on integer
+                f = images[int(ans)-1]
+
+        #Read in image and convert
+        im = cv2.imread(d+f)
+        flatIm = im.flatten()
+        
+        #Retrieve Password length
+        pLen = ""
+        for i in range(32):#Again, can replace this with a vector calculation
+            pLen += str(flatIm[i] & 1)
+        
+        #HERE
+
+        a = input()
 
     #==================================================================
 
@@ -61,17 +94,14 @@ class Stego:
 
         #CHOICE: Do I want the user to prompt for an image, or use an image in the directory by assumption?
         #For now just take image from directory
-        fileTypes = ('.jpg', '.jpeg', '.png') #Maybe add more later - needs error checking
-        images = [f for f in os.listdir(self.directory) if f.lower().endswith(fileTypes)]
+        images = [f for f in os.listdir(self.directory) if f.lower().endswith(self.fileTypes)]
         
-
         #Check number of images found
         if len(images) < 1:
             print("No Image found")
         else:
             #Just open the first
             im = cv2.imread(images[0])
-            im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
             
             #Redirect to actually embed the password
             self.embed(plainPass, im, images[0])
@@ -89,7 +119,7 @@ class Stego:
         fullBits = [int(x) for x in dataCount + "".join(binString)]
 
         #Convert to numpy array
-        arr = np.array(fullBits)
+        #arr = np.array(fullBits)
 
         #Flatten image data, and convert into binary strings
         shape = im.shape
@@ -104,11 +134,13 @@ class Stego:
         for i in range(len(fullBits)):
             flatIm[i] = (flatIm[i] & 0xFE) | fullBits[i]
 
+        #print(flatIm[0:len(fullBits)])
         newIm = flatIm.reshape(shape)
-
+        
         #Save image into image folder
-        newIm = cv2.cvtColor(newIm, cv2.COLOR_RGB2BGR)
-        cv2.imwrite("Images/"+imName, newIm)
+        ext = "."+imName.split(".")[1]
+        name = input("Please Enter A File Name (No Extension)")
+        cv2.imwrite("Images\\"+name+ext, newIm)
 
         #keep this for after
         #test = bytes(int(b, 2) for b in binString).decode('utf-8')
