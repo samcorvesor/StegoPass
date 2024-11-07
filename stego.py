@@ -1,11 +1,16 @@
-import cv2
-import numpy as np
 import os
+import time
+
+import numpy as np
+import cv2
+
+import getpass
 
 class Stego:
     def __init__(self):
-        #Setup Here
-        a = 1
+        self.directory = os.path.dirname(os.path.abspath(__file__))
+
+    #==================================================================
 
     #Very basic menu in order to loop use choice
     def menuLoop(self):
@@ -31,9 +36,51 @@ class Stego:
             if inp == 1:
                 print("Recall password")
             elif inp == 2:
-                print("Add password")
+                self.getFileAndPass()
             elif inp == 9:
                 exit()
+
+    #==================================================================
+
+    def retrievePass(self):
+        print()
+
+    #==================================================================
+
+    #Combine a user's password and a given image
+    def getFileAndPass(self):
+        #Use getpass to take the user's password without it being output to the screen
+        plainPass, pass2 = 0, 1
+        while plainPass != pass2:
+            plainPass = getpass.getpass("Enter your password")
+            pass2 = getpass.getpass("Please confirm your password")
+            print()
+            if plainPass != pass2:
+                print("Please try again, passwords did not match.")
+                print()
+
+        #CHOICE: Do I want the user to prompt for an image, or use an image in the directory by assumption?
+        #For now just take image from directory
+        fileTypes = ('.jpg', '.jpeg', '.png') #Maybe add more later - needs error checking
+        images = [f for f in os.listdir(self.directory) if f.lower().endswith(fileTypes)]
+        
+
+        #Check number of images found
+        if len(images) < 1:
+            print("No Image found")
+        else:
+            #Just open the first
+            im = cv2.imread(images[0])
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+            
+            #Redirect to actually embed the password
+            self.embed(plainPass, im)
+
+    def embed(self, pas, im):
+        print()
+        time.sleep(3)
+
+    #==================================================================
 
 def __main__():
     s = Stego()
