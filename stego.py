@@ -74,11 +74,47 @@ class Stego:
             im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
             
             #Redirect to actually embed the password
-            self.embed(plainPass, im)
+            self.embed(plainPass, im, images[0])
 
-    def embed(self, pas, im):
-        print()
-        time.sleep(3)
+    #Perform the embedding
+    def embed(self, pas, im, imName):
+        #Convert into binary, and left pad with 0s.
+        binString = list(map(lambda x: f"{x:08b}", bytearray(pas, 'utf-8')))
+        numBits = sum(len(x) for x in binString)
+
+        #print("Contents of binString:", binString)
+        
+        #Create binary representation of data count, add it to data
+        dataCount = f"{numBits:032b}"
+        fullBits = [int(x) for x in dataCount + "".join(binString)]
+
+        #Convert to numpy array
+        arr = np.array(fullBits)
+
+        #Flatten image data, and convert into binary strings
+        shape = im.shape
+        flatIm = im.flatten()
+
+        #print(fullBits)
+        #print(flatIm[0:len(fullBits)])
+
+        #Embed
+        #   Can replace vector function?
+        #   Loops password so not a large issue
+        for i in range(len(fullBits)):
+            flatIm[i] = (flatIm[i] & 0xFE) | fullBits[i]
+
+        newIm = flatIm.reshape(shape)
+
+        #Save image into image folder
+        newIm = cv2.cvtColor(newIm, cv2.COLOR_RGB2BGR)
+        cv2.imwrite("Images/"+imName, newIm)
+
+        #keep this for after
+        #test = bytes(int(b, 2) for b in binString).decode('utf-8')
+
+        print("Image Saved! Press Enter to Return To Menu")
+        a = input()
 
     #==================================================================
 
