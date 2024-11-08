@@ -15,6 +15,8 @@ class Stego:
     #==================================================================
 
     #Very basic menu in order to loop use choice
+    #Improvements:
+    #   Add more options
     def menuLoop(self):
         inp = 0
 
@@ -48,10 +50,18 @@ class Stego:
 
     #==================================================================
 
+    #Retrieves the password associated with a specific file
+    #Improvements:
+    #   Vectorise 1 calculation
     def retrievePass(self):
-        d = self.directory+"\\Images\\"
+        d = self.directory+"\\Images\\"#Escape the backslashes
         images = [f for f in os.listdir(d) if f.lower().endswith(self.fileTypes)]
         
+        if len(images) < 1:
+            print("No files found! Press Enter to Return to Menu")
+            a = input()
+            return
+
         #Print file options
         ans = -1
         f = None
@@ -64,8 +74,12 @@ class Stego:
 
             if ans == "x":
                 return
-            elif int(ans) in range(1, len(images)+1):#Needs error checking on integer
-                f = images[int(ans)-1]
+            else:
+                try:
+                    ans = int(ans)
+                except:
+                    ans = 0
+            f = images[ans-1]
 
         #Read in image and convert
         im = cv2.imread(d+f)
@@ -79,6 +93,7 @@ class Stego:
         #print(pLen)
         #print(int(pLen, 2))
 
+        #Retrieve the actual password
         binPass = [int(x) for x in flatIm[32:32+int(pLen, 2)]]
         plainPass = ""
         for val in binPass:
@@ -92,6 +107,7 @@ class Stego:
         recovered = bytes(passInts).decode('utf-8')
         #print(recovered)
 
+        #Add to clipboard so as not to display on screen
         pyperclip.copy(recovered)
 
         print("Password is now on clipboard! Press Enter to Return to Menu.")
@@ -100,7 +116,10 @@ class Stego:
 
     #==================================================================
 
-    #Combine a user's password and a given image
+    #Get the user's input for a password
+    #Improvements:
+    #   Decouple from embed, so data is returned to menu, then embed is called
+    #   Add menu for user to choose image
     def getFileAndPass(self):
         #Use getpass to take the user's password without it being output to the screen
         plainPass, pass2 = 0, 1
@@ -127,6 +146,8 @@ class Stego:
             self.embed(plainPass, im, images[0])
 
     #Perform the embedding
+    #Improvements:
+    #   Vectorise 1 calculation
     def embed(self, pas, im, imName):
         #Convert into binary, and left pad with 0s.
         binString = list(map(lambda x: f"{x:08b}", bytearray(pas, 'utf-8')))
@@ -137,9 +158,6 @@ class Stego:
         #Create binary representation of data count, add it to data
         dataCount = f"{numBits:032b}"
         fullBits = [int(x) for x in dataCount + "".join(binString)]
-
-        #Convert to numpy array
-        #arr = np.array(fullBits)
 
         #Flatten image data, and convert into binary strings
         shape = im.shape
@@ -161,9 +179,6 @@ class Stego:
         ext = "."+imName.split(".")[1]
         name = input("Please Enter A File Name (No Extension)")
         cv2.imwrite("Images\\"+name+ext, newIm)
-
-        #keep this for after
-        #test = bytes(int(b, 2) for b in binString).decode('utf-8')
 
         print("Image Saved! Press Enter to Return To Menu")
         a = input()
