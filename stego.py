@@ -27,6 +27,7 @@ class Stego:
 
             print("(1) Retrieve a Password")
             print("(2) Embed a Password")
+            print("(4) Remove a Password")
             print("(9) Exit")
             inp = input()
             print()
@@ -40,14 +41,20 @@ class Stego:
             #Redirect the user to different modules
             if inp == 1:
                 f = self.chooseFile()
-                self.getPass(f)
+                if f:
+                    self.getPass(f, True)
+                    print("Password is now on clipboard! Press Enter to Return to Menu.")
+                    a = input()
             elif inp == 2:
-                parts = self.getFileAndPass()
-                if len(parts) == 4:
-                    plainPass, im, name, newName = parts
+                plainPass = self.takePass()
+                parts = self.getFile()
+                if len(parts) == 3:
+                    im, name, newName = parts
                     self.embed(plainPass, im, name, newName)
-
-            #Can add option to update or delete passwords
+            #3 = edit password
+            elif inp == 4:
+                f = self.chooseFile()
+                self.removePass(f)
 
             elif inp == 9:
                 exit()
@@ -87,9 +94,10 @@ class Stego:
         return f
 
     #Retrives the password associated with a file
+    #---Takes no user input---
     #Improvements
     #   Vectorise 1 calculation
-    def getPass(self, f):
+    def getPass(self, f, mode):
         d = self.directory+"\\Images\\"#Escape the backslashes
 
         #Read in image and convert
@@ -118,19 +126,18 @@ class Stego:
         recovered = bytes(passInts).decode('utf-8')
         #print(recovered)
 
-        #Add to clipboard so as not to display on screen
-        pyperclip.copy(recovered)
-
-        print("Password is now on clipboard! Press Enter to Return to Menu.")
-
-        a = input()
+        if mode:
+            #Add to clipboard so as not to display on screen
+            pyperclip.copy(recovered)
+        else:
+            return recovered
 
     #==================================================================
 
-    #Get the user's input for a password
-    #Improvements:
-    #   Add menu for user to choose image
-    def getFileAndPass(self):
+    #Gets a password from the user, and confirms it
+    #Improvements
+    #   Not sure
+    def takePass(self):
         #Use getpass to take the user's password without it being output to the screen
         plainPass, pass2 = 0, 1
         while plainPass != pass2:
@@ -140,7 +147,12 @@ class Stego:
             if plainPass != pass2:
                 print("Please try again, passwords did not match.")
                 print()
+        return plainPass
 
+    #Get the user's chosen file
+    #Improvements:
+    #   Add menu for user to choose image
+    def getFile(self):
         #CHOICE: Do I want the user to prompt for an image, or use an image in the directory by assumption?
         #For now just take image from directory
         images = [f for f in os.listdir(self.directory) if f.lower().endswith(self.fileTypes)]
@@ -156,9 +168,8 @@ class Stego:
             newName = input("Please Enter A File Name (No Extension)")
             
             #Redirect to actually embed the password
-            return [plainPass, im, images[0], newName]
+            return [im, images[0], newName]
             
-
     #Perform the embedding
     #---Takes no user input---
     #Improvements:
@@ -196,6 +207,26 @@ class Stego:
 
         print("Image Saved! Press Enter to Return To Menu")
         a = input()
+
+    #==================================================================
+
+    #Check the user knows the password, then delete
+    #Improvements:
+    #   Not Sure
+    def removePass(self, f):
+        pas = self.getPass(f, False)#Return password
+        
+        userPass = "one"
+        while userPass != pas and userPass != "":
+            userPass = getpass.getpass("Please enter the password, press Enter to exit.")
+        if userPass == "":
+            return
+        else:
+            #Delete file
+            d = self.directory+"\\Images\\"
+            os.remove(d+f)
+            a = input("File removed, press Enter to return to menu.")
+
 
     #==================================================================
 
