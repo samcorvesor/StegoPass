@@ -41,7 +41,10 @@ class Stego:
             if inp == 1:
                 self.retrievePass()
             elif inp == 2:
-                self.getFileAndPass()
+                parts = self.getFileAndPass()
+                if len(parts) == 4:
+                    plainPass, im, name, newName = parts
+                    self.embed(plainPass, im, name, newName)
 
             #Can add option to update or delete passwords
 
@@ -118,7 +121,6 @@ class Stego:
 
     #Get the user's input for a password
     #Improvements:
-    #   Decouple from embed, so data is returned to menu, then embed is called
     #   Add menu for user to choose image
     def getFileAndPass(self):
         #Use getpass to take the user's password without it being output to the screen
@@ -138,17 +140,22 @@ class Stego:
         #Check number of images found
         if len(images) < 1:
             print("No Image found")
+            return []
         else:
             #Just open the first
             im = cv2.imread(images[0])
+
+            newName = input("Please Enter A File Name (No Extension)")
             
             #Redirect to actually embed the password
-            self.embed(plainPass, im, images[0])
+            return [plainPass, im, images[0], newName]
+            
 
     #Perform the embedding
+    #---Takes no user input---
     #Improvements:
     #   Vectorise 1 calculation
-    def embed(self, pas, im, imName):
+    def embed(self, pas, im, imName, newName):
         #Convert into binary, and left pad with 0s.
         binString = list(map(lambda x: f"{x:08b}", bytearray(pas, 'utf-8')))
         numBits = sum(len(x) for x in binString)
@@ -177,8 +184,7 @@ class Stego:
         
         #Save image into image folder
         ext = "."+imName.split(".")[1]
-        name = input("Please Enter A File Name (No Extension)")
-        cv2.imwrite("Images\\"+name+ext, newIm)
+        cv2.imwrite("Images\\"+newName+ext, newIm)
 
         print("Image Saved! Press Enter to Return To Menu")
         a = input()
