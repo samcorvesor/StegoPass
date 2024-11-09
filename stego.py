@@ -39,7 +39,8 @@ class Stego:
 
             #Redirect the user to different modules
             if inp == 1:
-                self.retrievePass()
+                f = self.chooseFile()
+                self.getPass(f)
             elif inp == 2:
                 parts = self.getFileAndPass()
                 if len(parts) == 4:
@@ -53,10 +54,10 @@ class Stego:
 
     #==================================================================
 
-    #Retrieves the password associated with a specific file
+    #Allows the user to choose a file
     #Improvements:
-    #   Vectorise 1 calculation
-    def retrievePass(self):
+    #   Not sure
+    def chooseFile(self):
         d = self.directory+"\\Images\\"#Escape the backslashes
         images = [f for f in os.listdir(d) if f.lower().endswith(self.fileTypes)]
         
@@ -83,6 +84,13 @@ class Stego:
                 except:
                     ans = 0
             f = images[ans-1]
+        return f
+
+    #Retrives the password associated with a file
+    #Improvements
+    #   Vectorise 1 calculation
+    def getPass(self, f):
+        d = self.directory+"\\Images\\"#Escape the backslashes
 
         #Read in image and convert
         im = cv2.imread(d+f)
