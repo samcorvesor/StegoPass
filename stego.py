@@ -88,9 +88,10 @@ class Stego:
             else:
                 try:
                     ans = int(ans)
+                    f = images[ans-1]
                 except:
                     ans = 0
-            f = images[ans-1]
+            
         return f
 
     #Retrives the password associated with a file
@@ -226,7 +227,6 @@ class Stego:
             d = self.directory+"\\Images\\"
             os.remove(d+f)
             a = input("File removed, press Enter to return to menu.")
-
 
     #==================================================================
 
