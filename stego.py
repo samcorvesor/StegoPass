@@ -27,6 +27,7 @@ class Stego:
 
             print("(1) Retrieve a Password")
             print("(2) Embed a Password")
+            print("(3) Edit a Password")
             print("(4) Remove a Password")
             print("(9) Exit")
             inp = input()
@@ -51,7 +52,9 @@ class Stego:
                 if len(parts) == 3:
                     im, name, newName = parts
                     self.embed(plainPass, im, name, newName)
-            #3 = edit password
+            elif inp == 3:
+                f = self.chooseFile()
+                self.editPassword(f)
             elif inp == 4:
                 f = self.chooseFile()
                 self.removePass(f)
@@ -61,7 +64,7 @@ class Stego:
 
     #==================================================================
 
-    #Allows the user to choose a file
+    #Allows the user to choose a file (Inside Images Folder)
     #Improvements:
     #   Not sure
     def chooseFile(self):
@@ -150,7 +153,7 @@ class Stego:
                 print()
         return plainPass
 
-    #Get the user's chosen file
+    #Get the user's chosen file (Outside Images Folder)
     #Improvements:
     #   Add menu for user to choose image
     def getFile(self):
@@ -211,6 +214,32 @@ class Stego:
 
     #==================================================================
 
+    #Take a new password, and remove the old password
+    #Improvements:
+    #   Remove old password data when writing
+    def editPassword(self, f):
+        pas = self.getPass(f, False)#Return password
+        
+        userPass = "one"
+        while userPass != pas and userPass != "":
+            userPass = getpass.getpass("Please enter the password, press Enter to exit.")
+        if userPass == "":
+            return
+
+        #Take new password
+        newPass = self.takePass()
+
+        #Embed the new password in the same file, to replace it.
+        #   If the new password is shorter than the last, the remaining data is left
+        #   To fix this:
+        #       The final section could be replaced with the original (requires original image)
+        #       The final section could be randomised
+        im = cv2.imread(self.directory+"\\Images\\"+f)
+
+        self.embed(newPass, im, f, f.split(".")[0])
+
+    #==================================================================
+
     #Check the user knows the password, then delete
     #Improvements:
     #   Not Sure
@@ -222,11 +251,11 @@ class Stego:
             userPass = getpass.getpass("Please enter the password, press Enter to exit.")
         if userPass == "":
             return
-        else:
-            #Delete file
-            d = self.directory+"\\Images\\"
-            os.remove(d+f)
-            a = input("File removed, press Enter to return to menu.")
+        
+        #Delete file
+        d = self.directory+"\\Images\\"
+        os.remove(d+f)
+        a = input("File removed, press Enter to return to menu.")
 
     #==================================================================
 
