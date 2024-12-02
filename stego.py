@@ -10,13 +10,16 @@ import pyperclip
 class Stego:
     def __init__(self):
         self.directory = os.path.dirname(os.path.abspath(__file__))
-        self.fileTypes = ('.jpg', '.jpeg', '.png') #Maybe add more later - needs error checking
+        self.fileTypes = ('.jpg', '.jpeg', '.png') #Add additional support if possible
+                                                   #Would be interesting to work with gifs
 
     #==================================================================
 
-    #Very basic menu in order to loop use choice
+    #Loops through functionality options and redirects to another function.
+    #   ---Takes user input---
+
     #Improvements:
-    #   Add more options
+    #   Add further functionality
     def menuLoop(self):
         inp = 0
 
@@ -65,8 +68,9 @@ class Stego:
     #==================================================================
 
     #Allows the user to choose a file (Inside Images Folder)
-    #Improvements:
-    #   Not sure
+    #   ---Takes user input---
+
+    #RETURNS:   f <- The directory of the user's chosen file.
     def chooseFile(self):
         d = self.directory+"\\Images\\"#Escape the backslashes
         images = [f for f in os.listdir(d) if f.lower().endswith(self.fileTypes)]
@@ -98,7 +102,12 @@ class Stego:
         return f
 
     #Retrives the password associated with a file
-    #---Takes no user input---
+    #   ---No user input---
+
+    #INPUTS:    f <- The directory of the user's chosen file.
+    #           mode <- 0 to return, 1 to copy to clipboard.
+    #RETURNS:   recovered <- The password, either to clipboard or returned directly.
+
     #Improvements
     #   Vectorise 1 calculation
     def getPass(self, f, mode):
@@ -112,9 +121,6 @@ class Stego:
         pLen = ""
         for i in range(32):#Again, can replace this with a vector calculation
             pLen += str(flatIm[i] & 1)
-        
-        #print(pLen)
-        #print(int(pLen, 2))
 
         #Retrieve the actual password
         binPass = [int(x) for x in flatIm[32:32+int(pLen, 2)]]
@@ -138,9 +144,10 @@ class Stego:
 
     #==================================================================
 
-    #Gets a password from the user, and confirms it
-    #Improvements
-    #   Not sure
+    #Uses getpass to securely get the user's password, and confirms it.
+    #   ---Takes user input---
+
+    #RETURNS:    The user's password, in plaintext.
     def takePass(self):
         #Use getpass to take the user's password without it being output to the screen
         plainPass, pass2 = 0, 1
@@ -154,6 +161,12 @@ class Stego:
         return plainPass
 
     #Get the user's chosen file (Outside Images Folder)
+    #   ---Takes user input---
+
+    #RETURNS:   im <- The image data, as an array.
+    #           images[0] <- The chosen base Image.
+    #           newName <- The name the new file should be created under.
+
     #Improvements:
     #   Add menu for user to choose image
     def getFile(self):
@@ -175,9 +188,16 @@ class Stego:
             return [im, images[0], newName]
             
     #Perform the embedding
-    #---Takes no user input---
+    #   ---No user input---
+
+    #INPUTS:    pas <- The user's chosen password, in plaintext.
+    #           im <- The image data, as an array.
+    #           imName <- The chosen base Image.
+    #           newName <- The name the new file should be created under.
+
     #Improvements:
     #   Vectorise 1 calculation
+    #   Add additional embedding algorithms
     def embed(self, pas, im, imName, newName):
         #Convert into binary, and left pad with 0s.
         binString = list(map(lambda x: f"{x:08b}", bytearray(pas, 'utf-8')))
@@ -192,9 +212,6 @@ class Stego:
         #Flatten image data, and convert into binary strings
         shape = im.shape
         flatIm = im.flatten()
-
-        #print(fullBits)
-        #print(flatIm[0:len(fullBits)])
 
         #Embed
         #   Can replace vector function?
@@ -214,7 +231,11 @@ class Stego:
 
     #==================================================================
 
-    #Take a new password, and remove the old password
+    #Take a new password, to overwrite the old.
+    #   ---Takes user input---
+
+    #INPUTS:    f <- The user's chosen file.
+
     #Improvements:
     #   Remove old password data when writing
     def editPassword(self, f):
@@ -241,8 +262,9 @@ class Stego:
     #==================================================================
 
     #Check the user knows the password, then delete
-    #Improvements:
-    #   Not Sure
+    #   ---Takes user input---
+
+    #INPUTS:    f <- The user's chosen file.
     def removePass(self, f):
         pas = self.getPass(f, False)#Return password
         
