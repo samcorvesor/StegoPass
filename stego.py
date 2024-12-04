@@ -187,6 +187,23 @@ class Stego:
             #Redirect to actually embed the password
             return [im, images[0], newName]
             
+    #Helper function to find the binary data, from the password
+    #   ---No user input---
+
+    #INPUTS:    pas <- The user's chosen password, in plaintext.
+    #RETURNS:   fullBits <- The binary data, with length
+    def help_getBinary(self, pas):
+        #Convert into binary, and left pad with 0s.
+        binString = list(map(lambda x: f"{x:08b}", bytearray(pas, 'utf-8')))
+        numBits = sum(len(x) for x in binString)
+
+        #print("Contents of binString:", binString)
+        
+        #Create binary representation of data count, add it to data
+        dataCount = f"{numBits:032b}"
+        fullBits = [int(x) for x in dataCount + "".join(binString)]
+        return fullBits
+    
     #Perform the embedding
     #   ---No user input---
 
@@ -199,15 +216,8 @@ class Stego:
     #   Vectorise 1 calculation
     #   Add additional embedding algorithms
     def embed(self, pas, im, imName, newName):
-        #Convert into binary, and left pad with 0s.
-        binString = list(map(lambda x: f"{x:08b}", bytearray(pas, 'utf-8')))
-        numBits = sum(len(x) for x in binString)
-
-        #print("Contents of binString:", binString)
-        
-        #Create binary representation of data count, add it to data
-        dataCount = f"{numBits:032b}"
-        fullBits = [int(x) for x in dataCount + "".join(binString)]
+        #Get binary data
+        fullBits = self.help_getBinary(pas)
 
         #Flatten image data, and convert into binary strings
         shape = im.shape
@@ -251,13 +261,17 @@ class Stego:
         newPass = self.takePass()
 
         #Embed the new password in the same file, to replace it.
-        #   If the new password is shorter than the last, the remaining data is left
-        #   To fix this:
-        #       The final section could be replaced with the original (requires original image)
-        #       The final section could be randomised
         im = cv2.imread(self.directory+"\\Images\\"+f)
 
-        self.embed(newPass, im, f, f.split(".")[0])
+        #Scramble the old password data
+        oldBin = self.help_getBinary(pas)
+        shape = im.shape
+        flatIm = im.flatten()
+        for i in range(len(oldBin)):
+            flatIm[i] = (flatIm[i] & 0xFE) | oldBin[i]
+        scrambledIm = flatIm.reshape(shape)
+
+        self.embed(newPass, scrambledIm, f, f.split(".")[0])
 
     #==================================================================
 
