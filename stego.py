@@ -107,9 +107,6 @@ class Stego:
     #INPUTS:    f <- The directory of the user's chosen file.
     #           mode <- 0 to return, 1 to copy to clipboard.
     #RETURNS:   recovered <- The password, either to clipboard or returned directly.
-
-    #Improvements
-    #   Vectorise 1 calculation
     def getPass(self, f, mode):
         d = self.directory+"\\Images\\"#Escape the backslashes
 
@@ -119,8 +116,11 @@ class Stego:
         
         #Retrieve Password length
         pLen = ""
-        for i in range(32):#Again, can replace this with a vector calculation
-            pLen += str(flatIm[i] & 1)
+        #for i in range(32):
+        #    pLen += str(flatIm[i] & 1)
+
+        lsb_values = flatIm[:32] & 1
+        pLen += ''.join(map(str, lsb_values))
 
         #Retrieve the actual password
         binPass = [int(x) for x in flatIm[32:32+int(pLen, 2)]]
@@ -213,7 +213,6 @@ class Stego:
     #           newName <- The name the new file should be created under.
 
     #Improvements:
-    #   Vectorise 1 calculation
     #   Add additional embedding algorithms
     def embed(self, pas, im, imName, newName):
         #Get binary data
@@ -224,12 +223,11 @@ class Stego:
         flatIm = im.flatten()
 
         #Embed
-        #   Can replace vector function?
-        #   Loops password so not a large issue
-        for i in range(len(fullBits)):
-            flatIm[i] = (flatIm[i] & 0xFE) | fullBits[i]
+        fullBits = np.array(fullBits)
 
-        #print(flatIm[0:len(fullBits)])
+        # Perform the vectorized operation
+        flatIm[:len(fullBits)] = (flatIm[:len(fullBits)] & 0xFE) | fullBits
+        
         newIm = flatIm.reshape(shape)
         
         #Save image into image folder
