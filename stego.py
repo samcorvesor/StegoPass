@@ -170,8 +170,6 @@ class Stego:
     #Improvements:
     #   Add menu for user to choose image
     def getFile(self):
-        #CHOICE: Do I want the user to prompt for an image, or use an image in the directory by assumption?
-        #For now just take image from directory
         images = [f for f in os.listdir(self.directory) if f.lower().endswith(self.fileTypes)]
         
         #Check number of images found
@@ -179,13 +177,30 @@ class Stego:
             print("No Image found")
             return []
         else:
-            #Just open the first
-            im = cv2.imread(images[0])
+            #Menu
+            ans = -1
+            f = None
+            while not f:
+                for i in range(len(images)):
+                    print("("+str(i+1)+") "+images[i])
+                print("(x) Cancel")
+                ans = input()
+                print()
+
+                if ans == "x":
+                    return
+                else:
+                    try:
+                        ans = int(ans)
+                        f = images[ans-1]
+                    except:
+                        ans = 0
+            im = cv2.imread(f)
 
             newName = input("Please Enter A File Name (No Extension)")
             
             #Redirect to actually embed the password
-            return [im, images[0], newName]
+            return [im, f, newName]
             
     #Helper function to find the binary data, from the password
     #   ---No user input---
