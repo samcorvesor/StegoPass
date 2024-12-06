@@ -166,9 +166,6 @@ class Stego:
     #RETURNS:   im <- The image data, as an array.
     #           images[0] <- The chosen base Image.
     #           newName <- The name the new file should be created under.
-
-    #Improvements:
-    #   Add menu for user to choose image
     def getFile(self):
         images = [f for f in os.listdir(self.directory) if f.lower().endswith(self.fileTypes)]
         
@@ -258,9 +255,6 @@ class Stego:
     #   ---Takes user input---
 
     #INPUTS:    f <- The user's chosen file.
-
-    #Improvements:
-    #   Remove old password data when writing
     def editPassword(self, f):
         pas = self.getPass(f, False)#Return password
         
